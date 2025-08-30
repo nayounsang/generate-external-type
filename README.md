@@ -401,6 +401,12 @@ npm run build
 npm run lint
 ```
 
+### Add ChangeLog
+
+```bash
+npx @changesets/cli
+```
+
 ## 📝 License
 
 MIT License

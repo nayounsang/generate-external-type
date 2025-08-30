@@ -10,14 +10,16 @@
     "scripts",
     "file"
   ],
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "build": "tsc",
-    "lint": "eslint --fix"
+    "lint": "eslint --fix",
+    "release": "changeset publish"
   },
   "author": {
     "name": "Younsang Na",
@@ -26,6 +28,7 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@changesets/cli": "^2.29.6",
     "@eslint/js": "^9.34.0",
     "@types/node": "^24.3.0",
     "@vitest/coverage-v8": "^3.2.4",
