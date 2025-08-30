@@ -41,6 +41,7 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
+          version: npm run version
           publish: npm run release
           title: "chore: version packages [skip ci]"
           commit: "chore: version packages [skip ci]"
