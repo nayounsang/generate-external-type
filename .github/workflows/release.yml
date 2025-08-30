@@ -42,7 +42,7 @@ jobs:
         uses: changesets/action@v1
         with:
           version: npm run version
-          publish: npm publish --access public
+          publish: npm run release --access public
           title: "chore: version packages [skip ci]"
           commit: "chore: version packages [skip ci]"
         env:
