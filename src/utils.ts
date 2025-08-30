@@ -4,6 +4,10 @@ import path from "path";
 import { GeneratedType } from "./type";
 
 export function scanFiles(entries: string[], extensions: string[]) {
+  if (entries.length === 0) {
+    throw new Error("You must provide at least one entry path.");
+  }
+
   const fileMap = new Map<string, string>();
   function walkDir(dir: string) {
     const items = fs.readdirSync(dir);
@@ -60,6 +64,7 @@ export function getTypeContent(types: GeneratedType[]) {
       });
       content += "}\n";
     }
+    content += "\n";
   });
   return content;
 }

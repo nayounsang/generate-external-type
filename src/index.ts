@@ -3,8 +3,6 @@ import fs from "fs";
 import { ExtractExternalOptions } from "./type";
 import { getTypeContent, scanFiles } from "./utils";
 
-
-
 export default function generateExternalType({
   entries,
   extensions,
