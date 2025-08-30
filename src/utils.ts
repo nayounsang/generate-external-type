@@ -5,7 +5,10 @@ import { GeneratedType } from "./type";
 
 export function scanFiles(entries: string[], extensions: string[]) {
   if (entries.length === 0) {
-    throw new Error("You must provide at least one entry path.");
+    throw new Error("You must provide at least one entry path to start scanning.");
+  }
+  if (extensions.length === 0) {
+    throw new Error("You must provide at least one file extension.");
   }
 
   const fileMap = new Map<string, string>();

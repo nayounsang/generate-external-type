@@ -91,4 +91,8 @@ describe("scanFiles", () => {
   it("should throw an error if no entries are provided", () => {
     expect(() => scanFiles([], [".ts"])).toThrow("You must provide at least one entry path.");
   });
+
+  it("should throw an error if no extensions are provided", () => {
+    expect(() => scanFiles(["/test"], [])).toThrow("You must provide at least one file extension.");
+  });
 });
