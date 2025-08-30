@@ -14,3 +14,5 @@ export default function generateExternalType({
   const content = getTypeContent(types);
   fs.writeFileSync(output, content);
 }
+
+export * from "./type";
