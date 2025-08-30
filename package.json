@@ -1,5 +1,15 @@
 {
   "name": "generate-external-type",
+  "description": "Generate external type from files",
+  "homepage": "https://github.com/nayounsang/generate-external-type",
+  "keywords": [
+    "type",
+    "external",
+    "generate",
+    "typescript",
+    "scripts",
+    "file"
+  ],
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -9,9 +19,12 @@
     "build": "tsc",
     "lint": "eslint --fix"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": {
+    "name": "Younsang Na",
+    "email": "nayounsang72@gmail.com",
+    "url": "https://github.com/nayounsang"
+  },
+  "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^9.34.0",
     "@types/node": "^24.3.0",

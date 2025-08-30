@@ -34,6 +34,9 @@ export interface GeneratedInterfaceType {
 }
 
 export interface GeneratedBaseType {
+  /**
+   * name of the type.
+   */
   name: string;
 }
 
