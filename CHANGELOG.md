@@ -1,5 +1,11 @@
 # generate-external-type
 
+## 1.1.0
+
+### Minor Changes
+
+- cac3624: Use glob package and use with globOption
+
 ## 1.0.2
 
 ### Patch Changes
