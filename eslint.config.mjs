@@ -15,6 +15,9 @@ export default tseslint.config([
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    rules: {
+      "@typescript-eslint/consistent-type-imports": "error",
+    },
   },
   {
     files: ["tests/**/*.{test,spec}.ts"],
@@ -24,6 +27,13 @@ export default tseslint.config([
     },
     rules: {
       ...vitest.configs.recommended.rules,
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        {
+          prefer: "type-imports",
+          disallowTypeAnnotations: false,
+        },
+      ],
     },
     languageOptions: {
       parser: tseslint.parser,
