@@ -417,6 +417,199 @@ generateExternalType({
 });
 ```
 
+### Example 5: Next.js App Router Route Types Generation
+
+**Input files:**
+
+```typescript
+// ./src/app/page.tsx
+export default function HomePage() {
+  return <div>Home Page</div>;
+}
+
+// ./src/app/about/page.tsx
+export default function AboutPage() {
+  return <div>About Page</div>;
+}
+
+// ./src/app/blog/page.tsx
+export default function BlogPage() {
+  return <div>Blog Page</div>;
+}
+
+// ./src/app/contact/page.tsx
+export default function ContactPage() {
+  return <div>Contact Page</div>;
+}
+```
+
+```typescript
+// ./src/app/blog/[slug]/page.tsx
+interface BlogPostPageProps {
+  params: {
+    slug: string;
+  };
+}
+
+export default function BlogPostPage({ params }: BlogPostPageProps) {
+  return <div>Blog Post: {params.slug}</div>;
+}
+
+// ./src/app/products/[category]/[id]/page.tsx
+interface ProductPageProps {
+  params: {
+    category: string;
+    id: string;
+  };
+}
+
+export default function ProductPage({ params }: ProductPageProps) {
+  return <div>Product: {params.category}/{params.id}</div>;
+}
+
+// ./src/app/users/[userId]/profile/page.tsx
+interface UserProfilePageProps {
+  params: {
+    userId: string;
+  };
+}
+
+export default function UserProfilePage({ params }: UserProfilePageProps) {
+  return <div>User Profile: {params.userId}</div>;
+}
+```
+
+**Type generation script:**
+
+```typescript
+import generateExternalType from 'generate-external-type';
+import path from 'path';
+
+generateExternalType({
+  scanOption: {
+    pattern: './src/app/**/*.tsx',
+    options: {
+      ignore: ['**/node_modules/**', '**/dist/**', '**/*.test.*', '**/*.spec.*'],
+      dot: false
+    }
+  },
+  output: './src/generated/route-types.ts',
+  extractor: (files) => {
+    const types: GeneratedType[] = [];
+    const staticRoutes: string[] = [];
+    const dynamicRoutes: Array<{ path: string; params: string[] }> = [];
+    
+    for (const [filePath, content] of files) {
+      // Extract route path from file path
+      const relativePath = filePath.replace('./src/app/', '').replace('/page.tsx', '');
+      
+      if (relativePath === '') {
+        // Root page
+        staticRoutes.push('/');
+      } else if (!relativePath.includes('[') && !relativePath.includes(']')) {
+        // Static route
+        staticRoutes.push(`/${relativePath}`);
+      } else {
+        // Dynamic route - extract parameter names
+        const paramMatches = relativePath.match(/\[([^\]]+)\]/g);
+        if (paramMatches) {
+          const params = paramMatches.map(param => param.slice(1, -1)); // Remove [ and ]
+          dynamicRoutes.push({
+            path: `/${relativePath.replace(/\[[^\]]+\]/g, '')}`,
+            params
+          });
+        }
+      }
+    }
+    
+    // Generate static routes union type
+    if (staticRoutes.length > 0) {
+      types.push({
+        name: 'StaticRoute',
+        type: 'union',
+        members: staticRoutes
+      });
+    }
+    
+    // Generate dynamic route interfaces
+    dynamicRoutes.forEach(({ path, params }) => {
+      const routeName = path.split('/').filter(Boolean).join('');
+      const interfaceName = routeName.charAt(0).toUpperCase() + routeName.slice(1) + 'Params';
+      
+      const properties: Record<string, string> = {};
+      params.forEach(param => {
+        properties[param] = 'string';
+      });
+      
+      types.push({
+        name: interfaceName,
+        type: 'interface',
+        properties
+      });
+    });
+    
+    return types;
+  }
+});
+```
+
+**Generated output (`./src/generated/route-types.ts`):**
+
+```typescript
+export type StaticRoute = "/" | "/about" | "/blog" | "/contact";
+
+export interface BlogParams {
+  slug: string;
+}
+
+export interface ProductsParams {
+  category: string;
+  id: string;
+}
+
+export interface UsersProfileParams {
+  userId: string;
+}
+```
+
+**Usage in your Next.js app:**
+
+```typescript
+// ./src/lib/navigation.ts
+import type { StaticRoute } from '../generated/route-types';
+
+export function navigateTo(route: StaticRoute) {
+  // Type-safe navigation
+  router.push(route);
+}
+
+// ✅ Valid routes
+navigateTo('/');
+navigateTo('/about');
+navigateTo('/blog');
+
+// ❌ TypeScript error - invalid route
+navigateTo('/invalid-route');
+```
+
+```typescript
+// ./src/components/BlogPost.tsx
+import type { BlogParams } from '../generated/route-types';
+
+interface BlogPostProps {
+  params: BlogParams;
+}
+
+export default function BlogPost({ params }: BlogPostProps) {
+  // Type-safe access to slug parameter
+  const { slug } = params;
+  
+  return <div>Blog Post: {slug}</div>;
+}
+```
+
+This example demonstrates how to automatically generate type-safe route definitions for Next.js App Router, making your navigation and parameter handling completely type-safe!
+
 ## 🛠️ Development
 
 ### Install Dependencies
