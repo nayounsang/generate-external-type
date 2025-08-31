@@ -1,5 +1,11 @@
 # generate-external-type
 
+## 1.0.2
+
+### Patch Changes
+
+- f5f8651: Migrate build tool to rollup, to configure scalable build logic
+
 ## 1.0.1
 
 ### Patch Changes
