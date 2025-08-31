@@ -2,7 +2,8 @@ name: Release
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 concurrency:
   group: release-${{ github.ref }}
@@ -43,8 +44,8 @@ jobs:
         with:
           version: npm run version
           publish: npm run release --access public
-          title: "chore: version packages [skip ci]"
-          commit: "chore: version packages [skip ci]"
+          title: "chore: version packages"
+          commit: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
