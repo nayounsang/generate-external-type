@@ -4,7 +4,7 @@ import vitest from "@vitest/eslint-plugin";
 
 export default tseslint.config([
   {
-    files: ["src/**/*.ts", "src/**/*.tsx"],
+    files: ["src/**/*.ts"],
     extends: [
       eslint.configs.recommended,
       tseslint.configs.recommendedTypeChecked,
@@ -27,13 +27,6 @@ export default tseslint.config([
     },
     rules: {
       ...vitest.configs.recommended.rules,
-      "@typescript-eslint/consistent-type-imports": [
-        "error",
-        {
-          prefer: "type-imports",
-          disallowTypeAnnotations: false,
-        },
-      ],
     },
     languageOptions: {
       parser: tseslint.parser,

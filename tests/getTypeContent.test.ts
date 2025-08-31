@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { getTypeContent } from "../src/utils";
-import { GeneratedType } from "../src/type";
+import type { GeneratedType } from "../src/type";
 
 describe("getTypeContent", () => {
   it("should generate union type content", () => {
