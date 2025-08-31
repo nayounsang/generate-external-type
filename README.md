@@ -16,8 +16,9 @@ npm install -D generate-external-type
 import generateExternalType from 'generate-external-type';
 
 generateExternalType({
-  entries: ['./src'],           // Directory paths to start scanning
-  extensions: ['.glsl'],  // File extensions to scan
+  scanOption: {
+    pattern: './src/**/*.glsl',  // Glob pattern for file scanning
+  },
   output: './src/generated/types.ts',      // Output type definition file path
   extractor: (files) => {       // Function to extract types from files
     // Implement your type extraction logic here
@@ -28,8 +29,9 @@ generateExternalType({
 
 ### Key Parameters
 
-- **`entries`**: Array of directory paths to start file scanning
-- **`extensions`**: Array of file extensions to scan (e.g., `['.ts', '.js', '.vue']`)
+- **`scanOption`**: Object containing glob pattern and options for file scanning
+  - **`pattern`**: String or array of strings for glob pattern (e.g., `'./src/**/*.ts'` or `['./src/**/*.ts', './src/**/*.js']`)
+  - **`options`**: Optional glob options (e.g., `ignore`, `dot`, `follow`), see [GlobOptions](https://github.com/isaacs/node-glob?tab=readme-ov-file#options) from `glob`
 - **`output`**: File path to save the generated type definitions
 - **`extractor`**: Function that takes `FilesMap` and returns `GeneratedType[]`
 
@@ -100,8 +102,9 @@ Let's say you have user status files in JSON format:
 import generateExternalType from 'generate-external-type';
 
 generateExternalType({
-  entries: ['./users'],
-  extensions: ['.json'],
+  scanOption: {
+    pattern: './users/**/*.json',
+  },
   output: './src/generated/user-types.ts',
   extractor: (files) => {
     const types: GeneratedType[] = [];
@@ -167,8 +170,12 @@ export const configResponse = {
 
 ```typescript
 generateExternalType({
-  entries: ['./src/api/responses'],
-  extensions: ['.ts'],
+  scanOption: {
+    pattern: './src/api/responses/**/*.ts',
+    options: {
+      ignore: ['**/*.test.ts', '**/*.spec.ts']
+    }
+  },
   output: './src/generated/api-types.ts',
   extractor: (files) => {
     const types: GeneratedType[] = [];
@@ -290,8 +297,13 @@ void main() {
 
 ```typescript
 generateExternalType({
-  entries: ['./src/shaders'],
-  extensions: ['.glsl'],
+  scanOption: {
+    pattern: './src/shaders/**/*.glsl',
+    options: {
+      ignore: ['**/node_modules/**', '**/dist/**'],
+      dot: false
+    }
+  },
   output: './src/generated/shader-types.ts',
   extractor: (files) => {
     const types: GeneratedType[] = [];
@@ -371,6 +383,38 @@ export interface FragmentUniforms {
   u_color: number[];
   u_alpha: number;
 }
+```
+
+### Example 4: Advanced Pattern Matching with Multiple Extensions
+
+**Type generation script:**
+
+```typescript
+generateExternalType({
+  scanOption: {
+    pattern: [
+      './src/**/*.ts',
+      './src/**/*.js', 
+      './src/**/*.vue',
+      './src/**/*.json'
+    ],
+    options: {
+      ignore: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/*.test.*',
+        '**/*.spec.*'
+      ],
+      dot: false,
+      follow: true
+    }
+  },
+  output: './src/generated/all-types.ts',
+  extractor: (files) => {
+    // Your extraction logic here
+    return [];
+  }
+});
 ```
 
 ## 🛠️ Development

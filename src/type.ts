@@ -1,3 +1,5 @@
+import type { GlobOptions } from "glob";
+
 /**
  * key is the file path, value is the file content with utf-8 encoding.
  */
@@ -18,7 +20,6 @@ export interface GeneratedUnionType {
    */
   allowUndefined?: boolean;
 }
-
 export interface GeneratedInterfaceType {
   type: "interface";
   /**
@@ -43,15 +44,18 @@ export interface GeneratedBaseType {
 export type GeneratedType = GeneratedBaseType &
   (GeneratedUnionType | GeneratedInterfaceType);
 
+export interface ScanOption {
+  pattern: string | string[];
+  options?: Omit<GlobOptions, "withFileTypes">;
+}
+
 export interface ExtractExternalOptions {
   /**
-   * entry points for scanning.
+   * option for scanning files. Write with glob pattern.
+   * Same as the option for `globSync` of the glob package, but `withFileTypes` is not supported.
+   * @see {@link https://github.com/isaacs/node-glob?tab=readme-ov-file#globsyncpattern-string--string-options-globoptions--string--path}
    */
-  entries: string[];
-  /**
-   * file extensions to scan.
-   */
-  extensions: string[];
+  scanOption: ScanOption;
   /**
    * output file path.
    */

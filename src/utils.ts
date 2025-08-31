@@ -1,37 +1,14 @@
+
+import type { GeneratedType, ScanOption } from "./type";
+import { globSync } from "glob";
 import fs from "fs";
-import path from "path";
 
-import type { GeneratedType } from "./type";
-
-export function scanFiles(entries: string[], extensions: string[]) {
-  if (entries.length === 0) {
-    throw new Error(
-      "You must provide at least one entry path to start scanning."
-    );
-  }
-  if (extensions.length === 0) {
-    throw new Error("You must provide at least one file extension.");
-  }
-
+export function scanFiles(scanOption: ScanOption) {
   const fileMap = new Map<string, string>();
-  function walkDir(dir: string) {
-    const items = fs.readdirSync(dir);
-    for (const item of items) {
-      const itemPath = path.join(dir, item);
-      const stats = fs.statSync(itemPath);
-      if (stats.isDirectory()) {
-        walkDir(itemPath);
-      } else if (stats.isFile()) {
-        const ext = path.extname(itemPath);
-        if (extensions.includes(ext)) {
-          fileMap.set(itemPath, fs.readFileSync(itemPath, "utf-8"));
-        }
-      }
-    }
-  }
-  for (const entry of entries) {
-    walkDir(entry);
-  }
+  const files = globSync(scanOption.pattern, scanOption.options ?? {});
+  files.forEach((file) => {
+    fileMap.set(file, fs.readFileSync(file, "utf-8"));
+  });
   return fileMap;
 }
 
