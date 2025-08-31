@@ -1,37 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { scanFiles } from "../src/utils";
+import type { ScanOption } from "../src/type";
 
-const {
-  mockReaddirSync,
-  mockStatSync,
-  mockReadFileSync,
-  mockJoin,
-  mockExtname,
-} = vi.hoisted(() => {
+const { mockGlobSync, mockReadFileSync } = vi.hoisted(() => {
   return {
-    mockReaddirSync: vi.fn(),
-    mockStatSync: vi.fn(),
+    mockGlobSync: vi.fn(),
     mockReadFileSync: vi.fn(),
-    mockJoin: vi.fn(),
-    mockExtname: vi.fn(),
   };
+});
+
+vi.mock("glob", async () => {
+  const mockGlob = {
+    globSync: mockGlobSync,
+  };
+  return { ...mockGlob, default: mockGlob };
 });
 
 vi.mock("fs", async () => {
   const mockFs = {
-    readdirSync: mockReaddirSync,
-    statSync: mockStatSync,
     readFileSync: mockReadFileSync,
   };
   return { ...mockFs, default: mockFs };
-});
-
-vi.mock("path", async () => {
-  const mockPath = {
-    join: mockJoin,
-    extname: mockExtname,
-  };
-  return { ...mockPath, default: mockPath };
 });
 
 describe("scanFiles", () => {
@@ -39,64 +28,119 @@ describe("scanFiles", () => {
     vi.resetAllMocks();
   });
 
-  it("should scan files with matching extensions", () => {
-    mockReaddirSync.mockReturnValue(["file1.ts", "file2.js", "file3.ts"]);
-    mockStatSync.mockImplementation(() => ({
-      isDirectory: () => false,
-      isFile: () => true,
-    }));
+  it("should scan files with matching pattern", () => {
+    const mockFiles = ["/test/file1.ts", "/test/file2.ts", "/test/file3.js"];
+    mockGlobSync.mockReturnValue(mockFiles);
     mockReadFileSync.mockReturnValue("file content");
-    mockJoin.mockImplementation((...args: string[]) => args.join("/"));
-    mockExtname.mockImplementation((filePath: string) => {
-      if (filePath.endsWith(".ts")) return ".ts";
-      if (filePath.endsWith(".js")) return ".js";
-      return "";
-    });
 
-    const result = scanFiles(["/test"], [".ts"]);
+    const scanOption: ScanOption = {
+      pattern: "src/**/*.{ts,js}",
+    };
 
-    expect(result.size).toBe(2);
+    const result = scanFiles(scanOption);
+
+    expect(mockGlobSync).toHaveBeenCalledWith("src/**/*.{ts,js}", {});
     expect(result.has("/test/file1.ts")).toBe(true);
-    expect(result.has("/test/file3.ts")).toBe(true);
-    expect(result.has("/test/file2.js")).toBe(false);
+    expect(result.has("/test/file2.ts")).toBe(true);
+    expect(result.has("/test/file3.js")).toBe(true);
   });
 
-  it("should handle nested directories", () => {
-    mockReaddirSync
-      .mockReturnValueOnce(["dir1", "file1.ts"])
-      .mockReturnValueOnce(["nested.ts"]);
-    mockStatSync.mockImplementation((filePath: string) => ({
-      isDirectory: () => !filePath.includes("."),
-      isFile: () => filePath.includes("."),
-    }));
+  it("should scan files with custom glob options", () => {
+    const mockFiles = ["/test/file1.ts", "/test/file2.ts"];
+    mockGlobSync.mockReturnValue(mockFiles);
+    mockReadFileSync.mockReturnValue("file content");
+
+    const scanOption: ScanOption = {
+      pattern: "src/**/*.ts",
+      options: {
+        ignore: ["**/node_modules/**", "**/dist/**"],
+        dot: false,
+      },
+    };
+
+    const result = scanFiles(scanOption);
+
+    expect(mockGlobSync).toHaveBeenCalledWith("src/**/*.ts", {
+      ignore: ["**/node_modules/**", "**/dist/**"],
+      dot: false,
+    });
+    expect(result.size).toBe(2);
+    expect(result.has("/test/file1.ts")).toBe(true);
+    expect(result.has("/test/file2.ts")).toBe(true);
+  });
+
+  it("should handle array pattern", () => {
+    const mockFiles = ["/test/file1.ts", "/test/file2.js"];
+    mockGlobSync.mockReturnValue(mockFiles);
+    mockReadFileSync.mockReturnValue("file content");
+
+    const scanOption: ScanOption = {
+      pattern: ["src/**/*.ts", "src/**/*.js"],
+    };
+
+    const result = scanFiles(scanOption);
+
+    expect(mockGlobSync).toHaveBeenCalledWith(
+      ["src/**/*.ts", "src/**/*.js"],
+      {}
+    );
+    expect(result.size).toBe(2);
+    expect(result.has("/test/file1.ts")).toBe(true);
+    expect(result.has("/test/file2.js")).toBe(true);
+  });
+
+  it("should handle empty pattern", () => {
+    mockGlobSync.mockReturnValue([]);
+
+    const scanOption: ScanOption = {
+      pattern: "nonexistent/**/*.ts",
+    };
+
+    const result = scanFiles(scanOption);
+
+    expect(result.size).toBe(0);
+    expect(mockReadFileSync).not.toHaveBeenCalled();
+  });
+
+  it("should handle glob error gracefully", () => {
+    mockGlobSync.mockImplementation(() => {
+      throw new Error("Invalid pattern");
+    });
+
+    const scanOption: ScanOption = {
+      pattern: "invalid[pattern",
+    };
+
+    expect(() => scanFiles(scanOption)).toThrow("Invalid pattern");
+  });
+
+  it("should handle file read error", () => {
+    const mockFiles = ["/test/file1.ts", "/test/file2.ts"];
+    mockGlobSync.mockReturnValue(mockFiles);
+    mockReadFileSync
+      .mockReturnValueOnce("content1")
+      .mockImplementationOnce(() => {
+        throw new Error("Permission denied");
+      });
+
+    const scanOption: ScanOption = {
+      pattern: "src/**/*.ts",
+    };
+
+    expect(() => scanFiles(scanOption)).toThrow("Permission denied");
+  });
+
+  it("should use default options when options not provided", () => {
+    const mockFiles = ["/test/file.ts"];
+    mockGlobSync.mockReturnValue(mockFiles);
     mockReadFileSync.mockReturnValue("content");
-    mockJoin.mockImplementation((...args: string[]) => args.join("/"));
-    mockExtname.mockReturnValue(".ts");
 
-    const result = scanFiles(["/test"], [".ts"]);
+    const scanOption: ScanOption = {
+      pattern: "src/**/*.ts",
+    };
 
-    expect(result.size).toBe(2);
-    expect(result.has("/test/file1.ts")).toBe(true);
-    expect(result.has("/test/dir1/nested.ts")).toBe(true);
-  });
+    scanFiles(scanOption);
 
-  it("should handle non-existent directories gracefully", () => {
-    mockReaddirSync.mockImplementation(() => {
-      throw new Error("ENOENT");
-    });
-
-    expect(() => scanFiles(["/nonexistent"], [".ts"])).toThrow("ENOENT");
-  });
-
-  it("should throw an error if no entries are provided", () => {
-    expect(() => scanFiles([], [".ts"])).toThrow(
-      "You must provide at least one entry path to start scanning."
-    );
-  });
-
-  it("should throw an error if no extensions are provided", () => {
-    expect(() => scanFiles(["/test"], [])).toThrow(
-      "You must provide at least one file extension."
-    );
+    expect(mockGlobSync).toHaveBeenCalledWith("src/**/*.ts", {});
   });
 });
