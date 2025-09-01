@@ -1,8 +1,20 @@
 import { describe, it, expect } from "vitest";
-import { getTypeContent } from "../src/utils";
+import { getContent } from "../src/utils";
 import type { GeneratedType } from "../src/type";
 
-describe("getTypeContent", () => {
+describe("getContent", () => {
+  it("should write comment at the beginning of the output file", () => {
+    const types: GeneratedType[] = [{
+      name: "Status",
+      type: "union",
+      members: ["active", "inactive", "pending"],
+    }];
+    const result = getContent(types, "This is a comment");
+    expect(result).toContain(`// This is a comment
+
+export type Status = "active" | "inactive" | "pending";`);
+  });
+
   it("should generate union type content", () => {
     const types: GeneratedType[] = [
       {
@@ -12,7 +24,7 @@ describe("getTypeContent", () => {
       },
     ];
 
-    const result = getTypeContent(types);
+    const result = getContent(types);
     expect(result).toContain(
       'export type Status = "active" | "inactive" | "pending"'
     );
@@ -29,7 +41,7 @@ describe("getTypeContent", () => {
       },
     ];
 
-    const result = getTypeContent(types);
+    const result = getContent(types);
     expect(result).toContain(
       'export type NullableString = "hello" | "world" | null | undefined'
     );
@@ -46,7 +58,7 @@ describe("getTypeContent", () => {
       },
     ];
 
-    const result = getTypeContent(types);
+    const result = getContent(types);
     expect(result).toContain(
       'export type TestType = "value" | null | undefined'
     );
@@ -65,7 +77,7 @@ describe("getTypeContent", () => {
       },
     ];
 
-    const result = getTypeContent(types);
+    const result = getContent(types);
     expect(result).toContain(`export interface User {
   id: number;
   name: string;
@@ -90,7 +102,7 @@ describe("getTypeContent", () => {
       },
     ];
 
-    const result = getTypeContent(types);
+    const result = getContent(types);
     expect(result).toContain(`export type Status = "active" | "inactive";
 
 export interface Config {
@@ -100,7 +112,7 @@ export interface Config {
   });
 
   it("should handle empty types array", () => {
-    const result = getTypeContent([]);
+    const result = getContent([]);
     expect(result).toBe("");
   });
 
@@ -113,9 +125,26 @@ export interface Config {
       },
     ];
 
-    const result = getTypeContent(types);
+    const result = getContent(types);
     expect(result).toContain(
       'export type Priority = 1 | 2 | 3 | "high" | "low"'
     );
+  });
+
+  it("should write jsDoc", () => {
+    const types: GeneratedType[] = [
+      {
+        name: "Priority",
+        type: "union",
+        members: [1, 2],
+        jsDoc: `This is a jsDoc`,
+      },
+    ];
+
+    const result = getContent(types);
+    expect(result).toContain(`/**
+*  This is a jsDoc
+*/
+export type Priority = 1 | 2;`);
   });
 });

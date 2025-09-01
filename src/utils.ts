@@ -12,9 +12,26 @@ export function scanFiles(scanOption: ScanOption) {
   return fileMap;
 }
 
-export function getTypeContent(types: GeneratedType[]) {
+export function getContent(types: GeneratedType[], comment?: string) {
+  function writeJsDoc(jsDoc?: string) {
+    if (!jsDoc) {
+      return "";
+    }
+    const lines = jsDoc.split("\n");
+    const indentedLines = lines.map((line) => `*  ${line}`);
+    return `/**\n${indentedLines.join("\n")}\n*/\n`;
+  }
+
   let content = "";
+  if (comment) {
+    const lines = comment.split("\n");
+    const indentedLines = lines.map((line) => `// ${line}`);
+    content += `${indentedLines.join("\n")}\n`;
+    content += "\n";
+  }
+  
   types.forEach((type) => {
+    content += writeJsDoc(type.jsDoc);
     if (type.type === "union") {
       const membersSet = new Set<string>();
 
