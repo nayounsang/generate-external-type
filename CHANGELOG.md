@@ -1,5 +1,11 @@
 # generate-external-type
 
+## 1.1.1
+
+### Patch Changes
+
+- dd664b8: Supports JSDoc
+
 ## 1.1.0
 
 ### Minor Changes
