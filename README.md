@@ -34,6 +34,7 @@ generateExternalType({
   - **`options`**: Optional glob options (e.g., `ignore`, `dot`, `follow`), see [GlobOptions](https://github.com/isaacs/node-glob?tab=readme-ov-file#options) from `glob`
 - **`output`**: File path to save the generated type definitions
 - **`extractor`**: Function that takes `FilesMap` and returns `GeneratedType[]`
+- **`comment`**: Optional comment to write at the beginning of the output file
 
 ## 🔧 Type Definitions
 
@@ -51,6 +52,7 @@ type GeneratedType = GeneratedBaseType & (GeneratedUnionType | GeneratedInterfac
 
 interface GeneratedBaseType {
   name: string;  // Type name
+  jsDoc?: string;  // JSDoc comment for the type
 }
 
 interface GeneratedUnionType {
@@ -609,6 +611,107 @@ export default function BlogPost({ params }: BlogPostProps) {
 ```
 
 This example demonstrates how to automatically generate type-safe route definitions for Next.js App Router, making your navigation and parameter handling completely type-safe!
+
+### Example 6: JSDoc Comments and File Header Comments
+
+**Type generation script:**
+
+```typescript
+import generateExternalType from 'generate-external-type';
+
+generateExternalType({
+  scanOption: {
+    pattern: './src/config/**/*.json',
+  },
+  output: './src/generated/config-types.ts',
+  comment: 'Auto-generated type definitions for configuration files.',
+  extractor: (files) => {
+    const types: GeneratedType[] = [];
+    
+    for (const [filePath, content] of files) {
+      const data = JSON.parse(content);
+      
+      if (filePath.includes('database')) {
+        types.push({
+          name: 'DatabaseConfig',
+          type: 'interface',
+          properties: {
+            host: 'string',
+            port: 'number',
+            username: 'string',
+            password: 'string',
+            database: 'string'
+          },
+          jsDoc: 'Database configuration interface with connection settings.'
+        });
+      }
+      
+      if (filePath.includes('api')) {
+        types.push({
+          name: 'ApiConfig',
+          type: 'interface',
+          properties: {
+            baseUrl: 'string',
+            timeout: 'number',
+            retries: 'number',
+            enableCache: 'boolean'
+          },
+          jsDoc: 'API configuration settings for external service communication.'
+        });
+      }
+      
+      if (filePath.includes('features')) {
+        types.push({
+          name: 'FeatureFlags',
+          type: 'union',
+          members: Object.keys(data),
+          jsDoc: 'Available feature flags for the application.'
+        });
+      }
+    }
+    
+    return types;
+  }
+});
+```
+
+**Generated output (`./src/generated/config-types.ts`):**
+
+```typescript
+// Auto-generated type definitions for configuration files.
+
+/**
+ * Database configuration interface with connection settings.
+ */
+export interface DatabaseConfig {
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  database: string;
+}
+
+/**
+ * API configuration settings for external service communication.
+ */
+export interface ApiConfig {
+  baseUrl: string;
+  timeout: number;
+  retries: number;
+  enableCache: boolean;
+}
+
+/**
+ * Available feature flags for the application.
+ */
+export type FeatureFlags = "darkMode" | "notifications" | "analytics" | "premium";
+```
+
+**Key Features:**
+
+1. **File Header Comment**: The `comment` option adds a header comment to the entire generated file
+2. **JSDoc Comments**: Each type can have its own JSDoc comment using the `jsDoc` property
+3. **Simple Usage**: Just write the content - formatting is handled automatically
 
 ## 🛠️ Development
 

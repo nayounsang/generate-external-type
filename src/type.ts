@@ -39,6 +39,10 @@ export interface GeneratedBaseType {
    * name of the type.
    */
   name: string;
+  /**
+   * jsDoc of the type. Don't write format of jsDoc at the beginning and the end.
+   */
+  jsDoc?: string;
 }
 
 export type GeneratedType = GeneratedBaseType &
@@ -64,4 +68,8 @@ export interface ExtractExternalOptions {
    * extract type from files.
    */
   extractor: (files: FilesMap) => GeneratedType[];
+  /**
+   * comment to write at the beginning of the output file.
+   */
+  comment?: string;
 }
