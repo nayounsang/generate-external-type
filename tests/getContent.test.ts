@@ -143,8 +143,8 @@ export interface Config {
 
     const result = getContent(types);
     expect(result).toContain(`/**
-*  This is a jsDoc
-*/
+ *  This is a jsDoc
+ */
 export type Priority = 1 | 2;`);
   });
 });

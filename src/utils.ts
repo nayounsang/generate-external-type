@@ -18,8 +18,8 @@ export function getContent(types: GeneratedType[], comment?: string) {
       return "";
     }
     const lines = jsDoc.split("\n");
-    const indentedLines = lines.map((line) => `*  ${line}`);
-    return `/**\n${indentedLines.join("\n")}\n*/\n`;
+    const indentedLines = lines.map((line) => ` *  ${line}`);
+    return `/**\n${indentedLines.join("\n")}\n */\n`;
   }
 
   let content = "";
